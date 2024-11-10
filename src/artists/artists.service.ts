@@ -22,7 +22,7 @@ export class ArtistsService {
     }
     const artist = this.artists.find((artist) => artist.id === id);
     if (!artist) {
-      throw new BadRequestException('Artist not found');
+      throw new NotFoundException('Artist not found');
     }
     return artist;
   }
