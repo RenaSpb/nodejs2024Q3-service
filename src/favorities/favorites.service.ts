@@ -63,7 +63,6 @@ export class FavoritesService {
     }
 
     try {
-      const track = this.tracksService.findById(id);
       if (!this.favorites.tracks.includes(id)) {
         this.favorites.tracks.push(id);
       }
@@ -90,7 +89,6 @@ export class FavoritesService {
     }
 
     try {
-      const album = this.albumsService.findById(id);
       if (!this.favorites.albums.includes(id)) {
         this.favorites.albums.push(id);
       }
@@ -117,7 +115,6 @@ export class FavoritesService {
     }
 
     try {
-      const artist = this.artistsService.findById(id);
       if (!this.favorites.artists.includes(id)) {
         this.favorites.artists.push(id);
       }
