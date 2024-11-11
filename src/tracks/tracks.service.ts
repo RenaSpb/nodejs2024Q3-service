@@ -25,10 +25,14 @@ export class TracksService {
 
   create(createTrackDto: CreateTrackDto): Track {
     if (
-      typeof createTrackDto.name !== 'string'
+      typeof createTrackDto.name !== 'string' ||
+      !createTrackDto.name.trim() ||
+      typeof createTrackDto.duration !== 'number' ||
+      createTrackDto.duration <= 0
     ) {
-      throw new BadRequestException('Body does not contain required fields');
+      throw new BadRequestException('Invalid data type');
     }
+
     const newTrack: Track = {
       id: uuidv4(),
       ...createTrackDto
@@ -41,6 +45,13 @@ export class TracksService {
   update(id: string, updateTrackDto: UpdateTrackDto): Track {
     if (!validateUUID(id)) {
       throw new BadRequestException('Invalid track id');
+    }
+    if (
+      'albumId' in updateTrackDto &&
+      updateTrackDto.albumId !== null &&
+      !validateUUID(updateTrackDto.albumId)
+    ) {
+      throw new BadRequestException('Invalid albumId');
     }
 
     const trackIndex = this.tracks.findIndex(track => track.id === id);
@@ -69,5 +80,22 @@ export class TracksService {
     this.tracks.splice(trackIndex, 1);
   }
 
+ /* updateArtistReference(artistId: string): void {
+    this.tracks = this.tracks.map(track => {
+      if (track.artistId === artistId) {
+        return { ...track, artistId: null };
+      }
+      return track;
+    });
+  }
+
+  updateAlbumReference(albumId: string): void {
+    this.tracks = this.tracks.map(track => {
+      if (track.albumId === albumId) {
+        return { ...track, albumId: null };
+      }
+      return track;
+    });
+  }*/
 
 }
