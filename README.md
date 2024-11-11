@@ -9,6 +9,7 @@
 
 ```
 git clone {repository URL}
+git checkout dev
 ```
 
 ## Installing NPM modules
