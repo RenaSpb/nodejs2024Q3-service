@@ -8,6 +8,6 @@ import { TracksModule } from '../tracks/tracks.module';
 @Module({
   imports: [ArtistsModule, AlbumsModule, TracksModule],
   controllers: [FavoritesController],
-  providers: [FavoritesService]
+  providers: [FavoritesService],
 })
 export class FavoritesModule {}

@@ -2,14 +2,24 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { validate as validateUUID, v4 as uuidv4 } from 'uuid';
 import { Artist } from './entities/artist.entity';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import { TracksService } from '../tracks/tracks.service';
+import { AlbumsService } from '../albums/albums.service';
 
 @Injectable()
 export class ArtistsService {
+  constructor(
+    @Inject(forwardRef(() => TracksService))
+    private tracksService: TracksService,
+    @Inject(forwardRef(() => AlbumsService))
+    private albumsService: AlbumsService,
+  ) {}
   private artists: Artist[] = [];
 
   findAll(): Artist[] {
@@ -80,9 +90,9 @@ export class ArtistsService {
       throw new NotFoundException('Artist not found');
     }
 
+    this.tracksService.updateArtistReference(id);
+    this.albumsService.updateArtistReference(id);
+
     this.artists.splice(artistIndex, 1);
-    // TODO: При имплементации tracks и albums:
-    // 1. Найти все треки с artistId === id и установить их artistId в null
-    // 2. Найти все альбомы с artistId === id и установить их artistId в null
   }
 }

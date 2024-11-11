@@ -1,34 +1,69 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { Favorites } from './entities/favorites.entity';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+  BadRequestException,
+} from '@nestjs/common';
+import { validate as validateUUID } from 'uuid';
 import { ArtistsService } from '../artists/artists.service';
 import { AlbumsService } from '../albums/albums.service';
 import { TracksService } from '../tracks/tracks.service';
 
 @Injectable()
 export class FavoritesService {
-  private favorites: Favorites = {
-    artists: [],
-    albums: [],
-    tracks: []
+  private favorites = {
+    artists: [] as string[],
+    albums: [] as string[],
+    tracks: [] as string[],
   };
 
   constructor(
     private artistsService: ArtistsService,
     private albumsService: AlbumsService,
-    private tracksService: TracksService
+    private tracksService: TracksService,
   ) {}
 
-  async findAll() {
-    return {
-      artists: this.favorites.artists.map(id => this.artistsService.findById(id)),
-      albums: this.favorites.albums.map(id => this.albumsService.findById(id)),
-      tracks: this.favorites.tracks.map(id => this.tracksService.findById(id))
-    };
+  findAll() {
+    const artists = this.favorites.artists
+      .map((id) => {
+        try {
+          return this.artistsService.findById(id);
+        } catch {
+          return null;
+        }
+      })
+      .filter((artist) => artist !== null);
+
+    const albums = this.favorites.albums
+      .map((id) => {
+        try {
+          return this.albumsService.findById(id);
+        } catch {
+          return null;
+        }
+      })
+      .filter((album) => album !== null);
+
+    const tracks = this.favorites.tracks
+      .map((id) => {
+        try {
+          return this.tracksService.findById(id);
+        } catch {
+          return null;
+        }
+      })
+      .filter((track) => track !== null);
+
+    return { artists, albums, tracks };
   }
 
-  async addTrack(id: string) {
+  addTrack(id: string) {
+    if (!validateUUID(id)) {
+      throw new BadRequestException('Invalid track id');
+    }
+
     try {
-      const track = await this.tracksService.findById(id);
+      const track = this.tracksService.findById(id);
       if (!this.favorites.tracks.includes(id)) {
         this.favorites.tracks.push(id);
       }
@@ -37,7 +72,11 @@ export class FavoritesService {
     }
   }
 
-  async removeTrack(id: string) {
+  removeTrack(id: string) {
+    if (!validateUUID(id)) {
+      throw new BadRequestException('Invalid track id');
+    }
+
     const index = this.favorites.tracks.indexOf(id);
     if (index === -1) {
       throw new NotFoundException('Track not found in favorites');
@@ -45,9 +84,13 @@ export class FavoritesService {
     this.favorites.tracks.splice(index, 1);
   }
 
-  async addAlbum(id: string) {
+  addAlbum(id: string) {
+    if (!validateUUID(id)) {
+      throw new BadRequestException('Invalid album id');
+    }
+
     try {
-      const album = await this.albumsService.findById(id);
+      const album = this.albumsService.findById(id);
       if (!this.favorites.albums.includes(id)) {
         this.favorites.albums.push(id);
       }
@@ -56,7 +99,11 @@ export class FavoritesService {
     }
   }
 
-  async removeAlbum(id: string) {
+  removeAlbum(id: string) {
+    if (!validateUUID(id)) {
+      throw new BadRequestException('Invalid album id');
+    }
+
     const index = this.favorites.albums.indexOf(id);
     if (index === -1) {
       throw new NotFoundException('Album not found in favorites');
@@ -64,9 +111,13 @@ export class FavoritesService {
     this.favorites.albums.splice(index, 1);
   }
 
-  async addArtist(id: string) {
+  addArtist(id: string) {
+    if (!validateUUID(id)) {
+      throw new BadRequestException('Invalid artist id');
+    }
+
     try {
-      const artist = await this.artistsService.findById(id);
+      const artist = this.artistsService.findById(id);
       if (!this.favorites.artists.includes(id)) {
         this.favorites.artists.push(id);
       }
@@ -75,7 +126,11 @@ export class FavoritesService {
     }
   }
 
-  async removeArtist(id: string) {
+  removeArtist(id: string) {
+    if (!validateUUID(id)) {
+      throw new BadRequestException('Invalid artist id');
+    }
+
     const index = this.favorites.artists.indexOf(id);
     if (index === -1) {
       throw new NotFoundException('Artist not found in favorites');
