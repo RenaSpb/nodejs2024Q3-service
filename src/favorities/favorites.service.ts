@@ -63,6 +63,12 @@ export class FavoritesService {
     }
 
     try {
+      this.tracksService.findById(id);
+    } catch (error) {
+      throw new UnprocessableEntityException('Track not found');
+    }
+
+    try {
       if (!this.favorites.tracks.includes(id)) {
         this.favorites.tracks.push(id);
       }
@@ -89,6 +95,12 @@ export class FavoritesService {
     }
 
     try {
+      this.albumsService.findById(id);
+    } catch (error) {
+      throw new UnprocessableEntityException('Album not found');
+    }
+
+    try {
       if (!this.favorites.albums.includes(id)) {
         this.favorites.albums.push(id);
       }
@@ -112,6 +124,12 @@ export class FavoritesService {
   addArtist(id: string) {
     if (!validateUUID(id)) {
       throw new BadRequestException('Invalid artist id');
+    }
+
+    try {
+      this.artistsService.findById(id);
+    } catch (error) {
+      throw new UnprocessableEntityException('Artist not found');
     }
 
     try {
