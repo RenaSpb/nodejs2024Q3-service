@@ -20,9 +20,9 @@ export class Track {
   @Column('integer')
   duration: number;
 
-  @ManyToOne(() => Artist)
-  artist: Artist;
+  @ManyToOne(() => Artist, { nullable: true })
+  artist?: Artist;
 
-  @ManyToOne(() => Album)
-  album: Album;
+  @ManyToOne(() => Album, { nullable: true })
+  album?: Album;
 }
