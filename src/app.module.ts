@@ -1,5 +1,7 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { typeOrmConfig } from './config/ormconfig';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -10,6 +12,7 @@ import { FavoritesModule } from './favorities/favorites.module';
 
 @Module({
   imports: [
+    TypeOrmModule.forRoot(typeOrmConfig),
     UsersModule,
     ArtistsModule,
     TracksModule,
