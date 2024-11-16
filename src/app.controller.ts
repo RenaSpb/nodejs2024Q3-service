@@ -8,6 +8,6 @@ export class AppController {
   @Get()
   getHello(): string {
     console.log('Test update ' + new Date().toISOString());
-    return 'Hello World Updated!';
+    return 'Hello World Updated!!!';
   }
 }

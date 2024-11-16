@@ -11,7 +11,7 @@ RUN npm run build
 FROM node:18-alpine
 WORKDIR /app
 COPY package*.json ./
-# Устанавливаем только production зависимости и очищаем кэш
+
 RUN npm ci --only=production && \
     npm cache clean --force && \
     rm -rf /root/.npm

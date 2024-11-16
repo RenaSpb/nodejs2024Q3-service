@@ -30,6 +30,11 @@ npm install
 ```
 docker-compose up --build
 ```
+### Running Without Rebuilding
+To start the services without rebuilding the Docker images:
+```
+docker-compose up
+```
 The application will be available on http://localhost:4000
 PostgreSQL will be running on port 5432
 
@@ -51,11 +56,7 @@ renatamurzina/home-library-db
 ```docker pull renatamurzina/home-library-db```
 ```npm run docker:pull```
 
-## Development
-Running application
-```
-npm run start
-```
+
 ## Testing
 ```
 npm run test
