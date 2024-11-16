@@ -4,7 +4,12 @@ services:
     build: .
     ports:
       - "4000:4000"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     environment:
+      - NODE_ENV=development
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USERNAME=postgres
@@ -15,6 +20,9 @@ services:
     networks:
       - app-network
     restart: always
+    volumes:
+      - ./src:/app/src
+    command: npm run start:dev
 
   postgres:
     image: postgres:15-alpine
