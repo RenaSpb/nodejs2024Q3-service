@@ -22,5 +22,5 @@ COPY tsconfig.json ./
 COPY src ./src
 EXPOSE 4000
 
-ENV NODE_OPTIONS="--max-old-space-size=1024"
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 CMD ["npm", "run", "start:dev"]
