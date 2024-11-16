@@ -7,7 +7,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 2G
+        reservations:
+          memory: 512M
     environment:
       - NODE_ENV=development
       - DB_HOST=postgres
@@ -21,8 +23,11 @@ services:
       - app-network
     restart: always
     volumes:
-      - ./src:/app/src
-    command: npm run start:dev
+      - .:/app
+      - /app/node_modules
+      - ./src:/app/src:rw
+    command: npx nodemon --watch src --ext ts,js --verbose --legacy-watch src/main.ts
+
 
   postgres:
     image: postgres:15-alpine

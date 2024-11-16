@@ -3,7 +3,7 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
-RUN npm ci && npm i -g @nestjs/cli
+RUN npm ci
 COPY . .
 RUN npm run build
 
@@ -11,9 +11,16 @@ RUN npm run build
 FROM node:18-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --only=production && npm i -g @nestjs/cli
+# Устанавливаем только production зависимости и очищаем кэш
+RUN npm ci --only=production && \
+    npm i -g @nestjs/cli nodemon && \
+    npm cache clean --force && \
+    rm -rf /root/.npm
+
 COPY --from=builder /app/dist ./dist
 COPY tsconfig.json ./
-ENV NODE_OPTIONS="--max-old-space-size=512"
+COPY src ./src
 EXPOSE 4000
+
+ENV NODE_OPTIONS="--max-old-space-size=1536"
 CMD ["npm", "run", "start:dev"]
