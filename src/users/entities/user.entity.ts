@@ -1,23 +1,22 @@
-// src/users/entities/user.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   login: string;
 
   @Column()
   password: string;
 
-  @Column()
+  @Column({ default: 1 })
   version: number;
 
-  @Column('bigint')
+  @Column({ type: 'bigint' })
   createdAt: number;
 
-  @Column('bigint')
+  @Column({ type: 'bigint' })
   updatedAt: number;
 }

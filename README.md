@@ -38,6 +38,7 @@ docker-compose up
 The application will be available on http://localhost:4000
 PostgreSQL will be running on port 5432
 
+
 ### Container Management
 View running containers: ```docker ps```
 View logs: ```docker-compose logs```
@@ -60,6 +61,10 @@ renatamurzina/home-library-db
 ## Testing
 ```
 npm run test
+
+npm run test:auth
+To run only specific test suite with authorization
+
 ```
 
 ## Code Quality
@@ -67,3 +72,6 @@ npm run test
 npm run lint
 npm run format
 ```
+## Environment Variables
+
+The application uses the following environment variables:

@@ -6,34 +6,26 @@ const createUserDto = {
 };
 
 const getTokenAndUserId = async (request) => {
-  // create user
-  const {
-    body: { id: mockUserId },
-  } = await request
+  const signupResponse = await request
     .post(authRoutes.signup)
     .set('Accept', 'application/json')
     .send(createUserDto);
 
-  // get token
-  const {
-    body: { accessToken, refreshToken },
-  } = await request
+  const { id: mockUserId } = signupResponse.body;
+  const loginResponse = await request
     .post(authRoutes.login)
     .set('Accept', 'application/json')
     .send(createUserDto);
+  const { accessToken } = loginResponse.body;
 
-  if (mockUserId === undefined || accessToken === undefined) {
+  if (!accessToken || !mockUserId) {
     throw new Error('Authorization is not implemented');
   }
 
   const token = `Bearer ${accessToken}`;
-
   return {
     token,
-    accessToken,
-    refreshToken,
     mockUserId,
-    login: createUserDto.login,
   };
 };
 

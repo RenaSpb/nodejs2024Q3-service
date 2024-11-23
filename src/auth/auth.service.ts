@@ -1,103 +1,86 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
+import { User } from '../users/entities/user.entity';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { Tokens } from './interfaces/tokens.interface';
-import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { PublicUser } from './interfaces/public-user.interface';
-
-interface User {
-  id: string;
-  login: string;
-  password: string;
-  version: number;
-  createdAt: number;
-  updatedAt: number;
-}
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class AuthService {
-  private users: User[] = [];
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  constructor(private readonly jwtService: JwtService) {}
-
-  async signup(dto: SignupDto): Promise<PublicUser> {
-    const existingUser = this.users.find((u) => u.login === dto.login);
-    if (existingUser) {
-      throw new ConflictException('Login already exists');
-    }
-
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const now = Date.now();
-
-    const newUser: User = {
-      id: uuidv4(),
-      login: dto.login,
-      password: hashedPassword,
-      version: 1,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    this.users.push(newUser);
-
-    const { password, ...publicUser } = newUser;
-    return publicUser;
-  }
-
-  async login(dto: LoginDto): Promise<Tokens> {
-    const user = this.users.find((u) => u.login === dto.login);
-    if (!user) {
-      throw new UnauthorizedException('Invalid login or password');
-    }
-
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid login or password');
-    }
-
-    return this.generateTokens(user);
-  }
-
-  async refresh(dto: RefreshTokenDto): Promise<Tokens> {
+  async signup(signupDto: SignupDto) {
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(
-        dto.refreshToken,
-        { secret: process.env.JWT_SECRET_REFRESH_KEY },
-      );
+      await this.userRepository
+        .createQueryBuilder()
+        .delete()
+        .from(User)
+        .where('login = :login', { login: signupDto.login })
+        .execute();
 
-      const user = this.users.find((u) => u.id === payload.id);
+      const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+      const now = Date.now();
+
+      const newUser = this.userRepository.create({
+        id: randomUUID(), // Явно задаем UUID
+        login: signupDto.login,
+        password: hashedPassword,
+        version: 1,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      const savedUser = await this.userRepository.save(newUser);
+
+      return {
+        id: savedUser.id,
+        login: savedUser.login,
+      };
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
+    }
+  }
+
+  async login(loginDto: LoginDto) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { login: loginDto.login },
+      });
+
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        throw new UnauthorizedException('Invalid login or password');
       }
 
-      return this.generateTokens(user);
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-  }
+      const isPasswordValid = await bcrypt.compare(
+        loginDto.password,
+        user.password,
+      );
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid login or password');
+      }
 
-  private async generateTokens(user: User): Promise<Tokens> {
-    const payload: JwtPayload = { id: user.id, login: user.login };
+      const payload = {
+        id: user.id,
+        login: user.login,
+      };
 
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_SECRET_KEY,
+      const accessToken = await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET_KEY || 'secret123123',
         expiresIn: process.env.TOKEN_EXPIRE_TIME || '1h',
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_SECRET_REFRESH_KEY,
-        expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME || '24h',
-      }),
-    ]);
+      });
 
-    return { accessToken, refreshToken };
+      return { accessToken };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   }
 }

@@ -12,12 +12,11 @@ FROM node:18-alpine
 WORKDIR /app
 COPY package*.json ./
 
-RUN npm ci --only=production && \
-    npm cache clean --force && \
-    rm -rf /root/.npm
+RUN npm ci && \
+    npm install -g ts-node typescript && \
+    npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
-RUN rm -rf /app/src /app/tsconfig.json
 COPY tsconfig.json ./
 COPY src ./src
 EXPOSE 4000

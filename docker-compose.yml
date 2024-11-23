@@ -2,47 +2,49 @@ version: '3.8'
 services:
   app:
     build: .
-    ports:
-      - "4000:4000"
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-        reservations:
-          memory: 512M
+    container_name: home-library-app
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       - NODE_ENV=development
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
-      - DB_DATABASE=library
-    depends_on:
-      - postgres
+      - PORT=4000
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=home-library
+      - JWT_SECRET=secret123123
+      - JWT_SECRET_REFRESH_KEY=secret123123
+      - TOKEN_EXPIRE_TIME=1h
+      - TOKEN_REFRESH_EXPIRE_TIME=24h
+    ports:
+      - "4000:4000"
     networks:
       - app-network
-    restart: always
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - ./src:/app/src:rw
-    command: npx nodemon --watch src --ext ts,js --verbose --legacy-watch src/main.ts
+
   postgres:
-    image: postgres:15-alpine
+    image: postgres:latest
+    container_name: home-library-db
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=library
+      - POSTGRES_DB=home-library
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
-
-volumes:
-  postgres_data:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  postgres_data:
